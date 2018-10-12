@@ -6,16 +6,23 @@
  */
 
 "use strict";
+
 const PROMPT = require('readline-sync');
+
 const MAX_TRANSACTION = 1000;
 const MIN_TRANSACTION = .01;
 const MIN_BALANCE = 0;
+const MAX_ATTEMPT = 3;
 
-let action, checkOrSave, skip, requestAmount;
-let stringAcctIn, stringAcctOut;
-let rerun = 1;
+let stringAcctIn, stringAcctOut, userName;//string
+
+let action, checkOrSave, skip, requestAmount, inputAcct, acctIndexNum, inputPin, pinIndexNum, verify;//int
+let verified = 0;
 let savings = 1000;
 let checking = 1000;
+
+let arrAcctNums = [12345678, 23456789, 34567890, 45678901, 56789012, 67890123, 78901234, 89012345, 90123456];
+let arrPinNums = [1111, 2222, 3333, 4444, 5555, 6666, 7777, 8888, 9999];
 
 
 /**
@@ -24,9 +31,12 @@ let checking = 1000;
  * @returns{null}
  */
 function main() {
-    while (rerun === 1) {
-
-
+    while (verified !== 1) {
+        setName();
+        setEnterAcctNum();
+        setEnterPin();
+    }
+    while (verified === 1) {
         chooseAction();
         branchAction();
     }
@@ -55,9 +65,7 @@ function chooseAction() {
             console.log(`\x1Bc`);
             console.log(`not a valid option, please try again.`);
         }
-
     }
-
 }
 
 /**
@@ -81,7 +89,7 @@ function branchAction() {
             doTransfer();
             break;
         case 5:
-            rerun = 0;
+            verified = 0;
             break;
         default:
             return branchAction();
@@ -152,7 +160,7 @@ function doWithdrawal() {
             checking -= requestAmount;
         }
     }
-    if (skip != 1) {
+    if (skip !== 1) {
         console.log(`\x1Bc`);
         console.log(`You have withdrawn $` + requestAmount + ` from ` + stringAcctIn + `.`);
         console.log(`Here are your new balances.`);
@@ -200,7 +208,7 @@ function doTransfer() {
             savings -= requestAmount;
         }
 }
-    if (skip != 1) {
+    if (skip !== 1) {
         console.log(`\x1Bc`);
         console.log(`You have transferred $` + requestAmount + ` from ` + stringAcctOut + ` into ` + stringAcctIn + `.`);
         console.log(`Here are your new balances.`);
@@ -238,8 +246,53 @@ function setCheckOrSaving() {
  * @returns{method}
  */
 function doInquire() {
-    //process.stdout.write(`\x1Bc`);
+    process.stdout.write(`\x1Bc`);
     action = null;
     console.log(`Current balance for savings is $` + savings.toFixed(2));
     console.log(`Current balance for checking is $` + checking.toFixed(2));
+}
+
+function setName() {
+    console.log(`\x1Bc`);
+    userName = PROMPT.question(`\nPlease enter user name: `)
+}
+
+function setEnterAcctNum() {
+    verify = 0;
+    while (inputAcct == null || acctIndexNum === -1 || !/[0-9]/.test(inputAcct)) {
+        inputAcct = Number(PROMPT.question(`\nPlease enter you account number: `));
+        acctIndexNum = arrAcctNums.indexOf(inputAcct);
+        if (inputAcct == null || acctIndexNum === -1 || !/[0-9]/.test(inputAcct)) {
+            errorLog();
+        }
+    }
+}
+
+function setEnterPin() {
+    verify = 0;
+    while (acctIndexNum !== pinIndexNum || !/[0-9]/.test(inputPin)) {
+        inputPin = Number(PROMPT.question(`Please enter your pin number: `));
+        pinIndexNum = arrPinNums.indexOf(inputPin);
+        if (acctIndexNum !== pinIndexNum || !/[0-9]/.test(inputPin)) {
+            errorLog();
+        }
+    }
+    console.log(`\x1Bc`);
+    console.log(`Thank you, your account has been verified. `);
+    verified = 1;
+}
+
+function errorLog() {
+    verify++;
+    if (verify < (MAX_ATTEMPT - 1)) {
+        console.log(`Incorrect account / pin number. Please try again. `);
+    }
+    else if (verify < MAX_ATTEMPT) {
+        console.log(`Incorrect account / pin number. Please try again. One attempt remaining. `);
+    }
+    else {
+        console.log(`\x1Bc`);
+        console.log(`Incorrect account / pin number. Contact customer service for assistance. `);
+        return process.kill(process.pid);
+    }
 }
