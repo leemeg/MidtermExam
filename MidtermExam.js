@@ -260,7 +260,7 @@ function setName() {
 function setEnterAcctNum() {
     verify = 0;
     while (inputAcct == null || acctIndexNum === -1 || !/[0-9]/.test(inputAcct)) {
-        inputAcct = Number(PROMPT.question(`\nPlease enter you account number: `));
+        inputAcct = Number(PROMPT.question(`\n` + userName + ` please enter your account number: `));
         acctIndexNum = arrAcctNums.indexOf(inputAcct);
         if (inputAcct == null || acctIndexNum === -1 || !/[0-9]/.test(inputAcct)) {
             errorLog();
